@@ -4,13 +4,18 @@ version: 0.0.1
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=1.17.0"
 
 dependencies:
+  flutter:
+    sdk: flutter
   web3dart: ^2.5.1
   eth_sig_util: ^0.0.9
   http: ^0.13.5
   steel_crypt: ^3.0.0+1
   pointycastle: ^3.6.2
+  bip39: ^1.0.6
+  flutter_bitcoin: ^1.0.1
 
 dev_dependencies:
   web3dart_builders: ^0.0.2

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pointycastle/key_derivators/api.dart';
@@ -11,12 +10,14 @@ import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/account.dart';
 import 'package:wallet_dart/wallet/encrypted_signer.dart';
 import 'package:web3dart/crypto.dart';
+// ignore: implementation_imports
 import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:bip39/bip39.dart';
+import 'package:flutter_bitcoin/flutter_bitcoin.dart';
 
 class AccountHelpers {
-
-  static Future<String> _generatePasswordKey(Map args) async{
+  static Future<String> _generatePasswordKey(Map args) async {
     final Scrypt scrypt = Scrypt();
     scrypt.init(ScryptParameters(16384, 8, 1, 32, base64Decode(args["salt"])));
     var passwordBytes = utf8.encode(args["password"]) as Uint8List;
@@ -24,17 +25,17 @@ class AccountHelpers {
     return base64.encode(keyBytes);
   }
 
-  static Future<String> _generatePasswordKeyThread(String password, String salt) async{
+  static Future<String> _generatePasswordKeyThread(String password, String salt) async {
     var key = await compute(_generatePasswordKey, {'password': password, 'salt': salt});
     return key;
   }
 
-  static Future<bool> reEncryptSigner(EncryptedSigner encryptedSigner, String newPassword, {EthPrivateKey? credentials, String? password}) async{
+  static Future<bool> reEncryptSigner(EncryptedSigner encryptedSigner, String newPassword, {EthPrivateKey? credentials, String? password}) async {
     Uint8List privateKeyBytes;
     String base64Salt = base64Encode(hexToBytes(encryptedSigner.salt));
-    if (credentials != null){
+    if (credentials != null) {
       privateKeyBytes = credentials.privateKey;
-    }else{
+    } else {
       if (password == null) return false;
       var _credentials = await decryptSigner(encryptedSigner, password);
       if (_credentials == null) return false;
@@ -42,10 +43,7 @@ class AccountHelpers {
     }
     String newPasswordKey = await _generatePasswordKeyThread(newPassword, base64Salt);
     AesCrypt aesCrypt = AesCrypt(padding: PaddingAES.pkcs7, key: newPasswordKey);
-    encryptedSigner.encryptedPrivateKey = aesCrypt.cbc.encrypt(
-        inp: bytesToHex(privateKeyBytes, include0x: true),
-        iv: base64Salt
-    ).toString();
+    encryptedSigner.encryptedPrivateKey = aesCrypt.cbc.encrypt(inp: bytesToHex(privateKeyBytes, include0x: true), iv: base64Salt).toString();
     return true;
   }
 
@@ -56,7 +54,7 @@ class AccountHelpers {
       AesCrypt aesCrypt = AesCrypt(padding: PaddingAES.pkcs7, key: passwordKey);
       String privateKey = aesCrypt.cbc.decrypt(enc: encryptedSigner.encryptedPrivateKey, iv: base64Salt);
       var privateKeyBytes = hexToBytes(privateKey);
-      if (privateKeyBytes.length > 32){
+      if (privateKeyBytes.length > 32) {
         int trim = privateKeyBytes.length - 32;
         privateKeyBytes = privateKeyBytes.sublist(trim);
       }
@@ -73,7 +71,7 @@ class AccountHelpers {
     required EthereumAddress address,
     required String salt,
     required List<String> signersIds,
-  }) async{
+  }) async {
     return Account(
       version: version,
       chainId: chainId,
@@ -84,21 +82,28 @@ class AccountHelpers {
     );
   }
 
-  static Future<EncryptedSigner> createEncryptedSigner({required String version, required String salt, required String password}) async{
+  static Future<EncryptedSigner> _loadEncryptedSigner(
+      {required String version, required String salt, required String password, required EthPrivateKey signer}) async {
     String base64Salt = base64Encode(hexToBytes(salt));
     String passwordKey = await _generatePasswordKeyThread(password, base64Salt);
     AesCrypt aesCrypt = AesCrypt(padding: PaddingAES.pkcs7, key: passwordKey);
+    return EncryptedSigner(
+        version: version,
+        salt: salt,
+        encryptedPrivateKey: aesCrypt.cbc.encrypt(inp: bytesToHex(signer.privateKey, include0x: true), iv: base64Salt).toString(),
+        publicAddress: signer.address);
+  }
+
+  static Future<EncryptedSigner> createEncryptedSigner({required String version, required String salt, required String password}) async {
     var secureRandom = Random.secure();
     EthPrivateKey signer = EthPrivateKey.createRandom(secureRandom);
-    return EncryptedSigner(
-      version: version,
-      salt: salt,
-      encryptedPrivateKey: aesCrypt.cbc.encrypt(
-        inp: bytesToHex(signer.privateKey, include0x: true),
-        iv: base64Salt
-      ).toString(),
-      publicAddress: signer.address
-    );
+    return _loadEncryptedSigner(version: version, salt: salt, password: password, signer: signer);
+  }
+
+  static Future<EncryptedSigner> importEncryptedSignerFromMnemonic(
+      {required String version, required String salt, required String mnemonic, required String password}) {
+    EthPrivateKey signer = getSignerFromMnemonic(mnemonic);
+    return _loadEncryptedSigner(version: version, salt: salt, password: password, signer: signer);
   }
 
   static Future<Account> createAccount({
@@ -113,22 +118,20 @@ class AccountHelpers {
     required EthereumAddress entrypoint,
     required EthereumAddress fallbackHandler,
     required Web3Client client,
-  }) async{
+  }) async {
     return Account(
       version: version,
       chainId: chainId,
       name: name,
-      address: EthereumAddress.fromHex(
-        await getAccountAddress(
-          client,
-          factory,
-          singleton,
-          entrypoint,
-          fallbackHandler,
-          signers,
-          BigInt.parse(salt, radix: 16),
-        )
-      ),
+      address: EthereumAddress.fromHex(await getAccountAddress(
+        client,
+        factory,
+        singleton,
+        entrypoint,
+        fallbackHandler,
+        signers,
+        BigInt.parse(salt, radix: 16),
+      )),
       salt: salt,
       signersIds: signersIds,
       factory: factory,
@@ -138,7 +141,8 @@ class AccountHelpers {
     );
   }
 
-  static Future<String> getAccountAddress(Web3Client client, EthereumAddress factory, EthereumAddress singleton, EthereumAddress entryPoint, EthereumAddress fallbackHandler, List<EthereumAddress> signers, BigInt saltNonce) async {
+  static Future<String> getAccountAddress(Web3Client client, EthereumAddress factory, EthereumAddress singleton, EthereumAddress entryPoint,
+      EthereumAddress fallbackHandler, List<EthereumAddress> signers, BigInt saltNonce) async {
     Uint8List initializer = hexToBytes(EncodeFunctionData.setupWithEntrypoint(
         signers,
         BigInt.one,
@@ -148,8 +152,7 @@ class AccountHelpers {
         EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
         BigInt.zero,
         EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
-        entryPoint
-    ));
+        entryPoint));
     //
     Uint8List proxyBytecode = await IGnosisSafeProxyFactory.interface(address: factory, client: client).proxyCreationCode();
     //
@@ -162,7 +165,8 @@ class AccountHelpers {
     );
   }
 
-  static Uint8List getInitCode(EthereumAddress singleton, EthereumAddress entryPoint, EthereumAddress fallbackHandler, List<EthereumAddress> signers, BigInt saltNonce){
+  static Uint8List getInitCode(
+      EthereumAddress singleton, EthereumAddress entryPoint, EthereumAddress fallbackHandler, List<EthereumAddress> signers, BigInt saltNonce) {
     Uint8List initializer = hexToBytes(EncodeFunctionData.setupWithEntrypoint(
         signers,
         BigInt.one,
@@ -172,17 +176,33 @@ class AccountHelpers {
         EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
         BigInt.zero,
         EthereumAddress.fromHex("0x0000000000000000000000000000000000000000"),
-        entryPoint
-    ));
+        entryPoint));
     return hexToBytes(EncodeFunctionData.createProxyWithNonce(singleton, initializer, saltNonce));
   }
 
+  static EthPrivateKey getSignerFromMnemonic(String mnemonic) {
+    final normalisedSeedPhrase = _seedPhraseNormalise(mnemonic);
+    return _getPrivateKey(normalisedSeedPhrase: normalisedSeedPhrase);
+  }
+
+  static String _seedPhraseNormalise(String seedPhrase) {
+    return _mnemonicWords(seedPhrase).join(" ");
+  }
+
+  static List<String> _mnemonicWords(String mnemonic) {
+    return mnemonic.split(" ").where((item) => item.trim().isNotEmpty).map((item) => item.trim()).toList();
+  }
+
+  static EthPrivateKey _getPrivateKey({required String normalisedSeedPhrase}) {
+    var seed = mnemonicToSeed(normalisedSeedPhrase);
+    final hdWallet = HDWallet.fromSeed(seed).derivePath("m/44'/60'/0'/0/0");
+    final String privKey = hdWallet.privKey ?? "";
+    return EthPrivateKey.fromHex(privKey);
+  }
 }
 
-
 class _AccountHelperUtils {
-
-  static getCreate2Address(EthereumAddress from, Uint8List salt, Uint8List initCodeHash){
+  static getCreate2Address(EthereumAddress from, Uint8List salt, Uint8List initCodeHash) {
     Uint8List ff = hexToBytes("0xff");
     String address = _getChecksumAddress(from.hex);
     LengthTrackingByteSink sink = LengthTrackingByteSink();
@@ -194,10 +214,11 @@ class _AccountHelperUtils {
     var sinkBytes = sink.asBytes();
     sink.close();
     //
-    return _getChecksumAddress(bytesToHex(keccak256(sinkBytes), include0x: true).substring(12*2)); // equivalent to hexDataSlice in ethers (12 bytes * 2 (bytes length in hex))
+    return _getChecksumAddress(
+        bytesToHex(keccak256(sinkBytes), include0x: true).substring(12 * 2)); // equivalent to hexDataSlice in ethers (12 bytes * 2 (bytes length in hex))
   }
 
-  static String _getChecksumAddress(String address){
+  static String _getChecksumAddress(String address) {
     address = address.toLowerCase();
     var chars = address.substring(2).split("");
     var expanded = Uint8List(40);
