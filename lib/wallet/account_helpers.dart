@@ -10,8 +10,6 @@ import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/account.dart';
 import 'package:wallet_dart/wallet/encrypted_signer.dart';
 import 'package:web3dart/crypto.dart';
-// ignore: implementation_imports
-import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:bip39/bip39.dart';
 import 'package:flutter_bitcoin/flutter_bitcoin.dart';

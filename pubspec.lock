@@ -213,10 +213,10 @@ packages:
     dependency: transitive
     description:
       name: eip1559
-      sha256: de454d6321bd753eb79116e9ec4f8df20895c2e97f9a3839a032f3a728985516
+      sha256: c2b81ac85f3e0e71aaf558201dd9a4600f051ece7ebacd0c5d70065c9b458004
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.1"
+    version: "0.6.2"
   eip55:
     dependency: transitive
     description:
@@ -306,10 +306,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "6aa2946395183537c8b880962d935877325d6a09a2867c3970c05c0fed6ac482"
+      sha256: "759d1a329847dd0f39226c688d3e06a6b8679668e350e2891a6474f8b4bb8525"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.5"
+    version: "1.1.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -426,10 +426,10 @@ packages:
     dependency: "direct main"
     description:
       name: pointycastle
-      sha256: db7306cf0249f838d1a24af52b5a5887c5bf7f31d8bb4e827d071dc0939ad346
+      sha256: "7c1e5f0d23c9016c5bbd8b1473d0d3fb3fc851b876046039509e18e0c7485f2c"
       url: "https://pub.dev"
     source: hosted
-    version: "3.6.2"
+    version: "3.7.3"
   pool:
     dependency: transitive
     description:
@@ -639,10 +639,10 @@ packages:
     dependency: transitive
     description:
       name: wallet
-      sha256: "2cabf10d4543b95773219fc401b184f8cbb0bba9359883f5ee5b9f2c46b85de3"
+      sha256: bd4156eccab0951a3f0ed8773c7ab3ae6f9e81be8b2e01eff4eb4ec1a28d609d
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.7"
+    version: "0.0.11"
   watcher:
     dependency: transitive
     description:
@@ -655,10 +655,10 @@ packages:
     dependency: "direct main"
     description:
       name: web3dart
-      sha256: "0b96223a6b284e3146e65dc842ded139eca68a85c4ab79c5ba1a73284927d3cd"
+      sha256: bebbea9278723cef51d21caf65668860e7547f59114fe9f8af01b873a72ba0e6
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.1"
+    version: "2.7.1"
   web3dart_builders:
     dependency: "direct dev"
     description:
@@ -692,5 +692,5 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=3.0.0-0 <4.0.0"
+  dart: ">=3.0.0 <4.0.0"
   flutter: ">=1.17.0"

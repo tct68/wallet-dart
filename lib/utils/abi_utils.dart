@@ -1,12 +1,10 @@
 import 'dart:typed_data';
-
 import 'package:web3dart/web3dart.dart';
-import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 
-Uint8List encodeAbi(List<String> types, List<dynamic> values){
+Uint8List encodeAbi(List<String> types, List<dynamic> values) {
   List<AbiType> abiTypes = [];
   LengthTrackingByteSink result = LengthTrackingByteSink();
-  for (String type in types){
+  for (String type in types) {
     var abiType = parseAbiType(type);
     abiTypes.add(abiType);
   }
@@ -16,9 +14,9 @@ Uint8List encodeAbi(List<String> types, List<dynamic> values){
   return resultBytes;
 }
 
-List<dynamic> decodeAbi(List<String> types, Uint8List value){
+List<dynamic> decodeAbi(List<String> types, Uint8List value) {
   List<AbiType> abiTypes = [];
-  for (String type in types){
+  for (String type in types) {
     var abiType = parseAbiType(type);
     abiTypes.add(abiType);
   }
