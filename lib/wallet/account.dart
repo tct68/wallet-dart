@@ -36,29 +36,41 @@ class Account {
         signersIds = json['signersIds'],
         salt = json['salt'],
         recoveryId = json['recoveryId'],
-        socialRecoveryModule = json['socialRecoveryModule'] != null ? EthereumAddress.fromHex(json['socialRecoveryModule']) : null,
-        factory = json['factory'] != null ? EthereumAddress.fromHex(json['factory']) : null,
-        singleton = json['singleton'] != null ? EthereumAddress.fromHex(json['singleton']) : null,
-        fallback = json['fallback'] != null ? EthereumAddress.fromHex(json['fallback']) : null,
-        entrypoint = json['entrypoint'] != null ? EthereumAddress.fromHex(json['entrypoint']) : null;
+        socialRecoveryModule = json['socialRecoveryModule'] != null
+            ? EthereumAddress.fromHex(json['socialRecoveryModule'])
+            : null,
+        factory = json['factory'] != null
+            ? EthereumAddress.fromHex(json['factory'])
+            : null,
+        singleton = json['singleton'] != null
+            ? EthereumAddress.fromHex(json['singleton'])
+            : null,
+        fallback = json['fallback'] != null
+            ? EthereumAddress.fromHex(json['fallback'])
+            : null,
+        entrypoint = json['entrypoint'] != null
+            ? EthereumAddress.fromHex(json['entrypoint'])
+            : null;
 
   Map<String, dynamic> toJson() => {
-    'version': version,
-    'chainId': chainId,
-    'name': name,
-    'address': address.hexEip55,
-    'signersIds': signersIds,
-    'salt': salt,
-    'recoveryId': recoveryId,
-    'socialRecoveryModule': socialRecoveryModule?.hexEip55,
-    'factory': factory?.hexEip55,
-    'singleton': singleton?.hexEip55,
-    'fallback': fallback?.hexEip55,
-    'entrypoint': entrypoint?.hexEip55,
-  };
+        'version': version,
+        'chainId': chainId,
+        'name': name,
+        'address': address.hexEip55,
+        'signersIds': signersIds,
+        'salt': salt,
+        'recoveryId': recoveryId,
+        'socialRecoveryModule': socialRecoveryModule?.hexEip55,
+        'factory': factory?.hexEip55,
+        'singleton': singleton?.hexEip55,
+        'fallback': fallback?.hexEip55,
+        'entrypoint': entrypoint?.hexEip55,
+      };
 
-  bool operator == (Object other) => other is Account && address.hex == other.address.hex && chainId == other.chainId;
+  bool operator ==(Object other) =>
+      other is Account &&
+      address.hex == other.address.hex &&
+      chainId == other.chainId;
 
   int get hashCode => Object.hash(address.hex, chainId);
-
 }

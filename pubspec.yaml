@@ -18,9 +18,3 @@ dev_dependencies:
   web3dart_builders: ^0.0.2
   build_runner: ^2.0.3
   test: ^1.21.0
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^2.0.0
-
-
-flutter:
