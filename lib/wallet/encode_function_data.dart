@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:typed_data';
 
 import 'package:wallet_dart/contracts/gnosis_safe_proxy_facotry.dart';
